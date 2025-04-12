@@ -1,3 +1,5 @@
+"""Módulo de vista para gestionar el historial médico de los pacientes en VetSys."""
+
 import tkinter as tk
 from tkinter import messagebox, ttk
 
@@ -6,15 +8,23 @@ from tkcalendar import DateEntry
 from models.historial import agregar_historial, obtener_historial_por_paciente
 from models.paciente import obtener_pacientes
 
+# ❌ No pongas este import aquí
+# from views.dashboard import mostrar_menu
+
 
 def volver_al_menu():
-    from views.dashboard import mostrar_menu
+    """Regresa al menú principal llamando a la función mostrar_menu."""
+    from views.dashboard import mostrar_menu  # pylint: disable=import-outside-toplevel
+
 
     mostrar_menu()
 
 
 def ventana_historial():
+    """Crea la ventana de historial médico con formulario y tabla por paciente."""
+
     def cargar_historial():
+        """Carga los registros médicos del paciente seleccionado en la tabla."""
         paciente_nombre = combo_paciente.get()
         if not paciente_nombre:
             return
@@ -28,6 +38,7 @@ def ventana_historial():
             tabla.insert("", "end", values=r)
 
     def guardar():
+        """Guarda un nuevo registro médico para el paciente seleccionado."""
         paciente_nombre = combo_paciente.get()
         if not paciente_nombre:
             messagebox.showwarning(
@@ -35,21 +46,37 @@ def ventana_historial():
             )
             return
         paciente_id = pacientes_dict[paciente_nombre]
-        agregar_historial(
-            paciente_id,
-            date_fecha.get(),
-            entry_sintomas.get(),
-            entry_diagnostico.get(),
-            entry_tratamiento.get(),
-            entry_observaciones.get(),
-        )
-        limpiar_campos()
-        cargar_historial()
-        messagebox.showinfo(
-            "Historial registrado", "El historial médico fue registrado correctamente."
-        )
-
+        try:
+            agregar_historial(
+                paciente_id,
+                date_fecha.get(),
+                entry_sintomas.get(),
+                entry_diagnostico.get(),
+                entry_tratamiento.get(),
+                entry_observaciones.get(),
+            )
+            limpiar_campos()
+            cargar_historial()
+            messagebox.showinfo(
+                "Historial registrado",
+                "El historial médico fue registrado correctamente.",
+            )
+        except ValueError as e:
+            messagebox.showerror(
+                "Error de Valor", f"Hubo un problema al guardar el historial: {e}"
+            )
+        except IOError as e:
+            messagebox.showerror(
+                "Error de Entrada/Salida",
+                f"Hubo un problema al guardar el historial: {e}",
+            )
+        except Exception as e:  # noqa: W0718 pylint: disable=broad-exception-caught
+            messagebox.showerror(
+                "Error Desconocido",
+                f"Hubo un problema al guardar el historial: {e}"
+            )
     def limpiar_campos():
+        """Limpia todos los campos del formulario."""
         entry_sintomas.delete(0, tk.END)
         entry_diagnostico.delete(0, tk.END)
         entry_tratamiento.delete(0, tk.END)

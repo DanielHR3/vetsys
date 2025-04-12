@@ -11,7 +11,8 @@ def agregar_historial(
     cur = con.cursor()
     cur.execute(
         """
-        INSERT INTO historial (paciente_id, fecha, sintomas, diagnostico, tratamiento, observaciones)
+        INSERT INTO historial 
+        (paciente_id, fecha, sintomas, diagnostico, tratamiento, observaciones)
         VALUES (?, ?, ?, ?, ?, ?)
     """,
         (paciente_id, fecha, sintomas, diagnostico, tratamiento, observaciones),
