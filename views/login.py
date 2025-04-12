@@ -1,6 +1,8 @@
 import tkinter as tk
 from tkinter import messagebox
+
 from database.db_connection import conectar
+
 
 def iniciar_sesion():
     def validar():
@@ -9,6 +11,9 @@ def iniciar_sesion():
         if usuario == "admin" and clave == "admin":
             messagebox.showinfo("Acceso permitido", "¡Bienvenido al sistema VetSys!")
             root.destroy()
+            from views.dashboard import mostrar_menu
+
+            mostrar_menu()
         else:
             messagebox.showerror("Error", "Usuario o contraseña incorrectos")
 
@@ -24,6 +29,8 @@ def iniciar_sesion():
     entry_clave = tk.Entry(root, show="*")
     entry_clave.grid(row=1, column=1)
 
-    tk.Button(root, text="Iniciar Sesión", command=validar).grid(row=2, column=0, columnspan=2, pady=10)
+    tk.Button(root, text="Iniciar Sesión", command=validar).grid(
+        row=2, column=0, columnspan=2, pady=10
+    )
 
     root.mainloop()
