@@ -14,8 +14,8 @@ from models.paciente import obtener_pacientes
 
 def volver_al_menu():
     """Regresa al menú principal llamando a la función mostrar_menu."""
-    from views.dashboard import mostrar_menu  # pylint: disable=import-outside-toplevel
-
+    from views.dashboard import \
+        mostrar_menu  # pylint: disable=import-outside-toplevel
 
     mostrar_menu()
 
@@ -72,9 +72,9 @@ def ventana_historial():
             )
         except Exception as e:  # noqa: W0718 pylint: disable=broad-exception-caught
             messagebox.showerror(
-                "Error Desconocido",
-                f"Hubo un problema al guardar el historial: {e}"
+                "Error Desconocido", f"Hubo un problema al guardar el historial: {e}"
             )
+
     def limpiar_campos():
         """Limpia todos los campos del formulario."""
         entry_sintomas.delete(0, tk.END)

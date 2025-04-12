@@ -5,6 +5,7 @@ import tkinter as tk
 from views.citas_view import ventana_citas
 from views.historial_view import ventana_historial
 from views.pacientes_view import ventana_pacientes
+from views.recetas_view import ventana_recetas
 
 
 def mostrar_menu():
@@ -49,6 +50,13 @@ def mostrar_menu():
         width=25,
         font=("Arial", 12),
         command=lambda: [root.destroy(), ventana_historial()],
+    ).pack(pady=10)
+    tk.Button(
+        frame,
+        text="💊 Recetas Médicas",
+        width=25,
+        font=("Arial", 12),
+        command=lambda: [root.destroy(), ventana_recetas()],
     ).pack(pady=10)
 
     tk.Button(
