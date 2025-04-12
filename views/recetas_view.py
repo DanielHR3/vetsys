@@ -1,19 +1,19 @@
 """Módulo de vista para registrar y consultar recetas médicas en VetSys."""
 
+import os
+import platform
+import subprocess
 import tkinter as tk
 from tkinter import messagebox, ttk
-
 from tkcalendar import DateEntry
-
 from models.paciente import obtener_pacientes
 from models.receta import guardar_receta, obtener_recetas_por_paciente
+from utils.pdf_utils import generar_receta_pdf
 
 
 def volver_al_menu():
     """Regresa al menú principal."""
-    from views.dashboard import \
-        mostrar_menu  # pylint: disable=import-outside-toplevel
-
+    from views.dashboard import mostrar_menu  # pylint: disable=import-outside-toplevel
     mostrar_menu()
 
 
@@ -35,27 +35,75 @@ def ventana_recetas():
             tabla.insert("", "end", values=r)
 
     def guardar():
-        """Guarda una receta para el paciente seleccionado."""
+        """Guarda una receta y genera el PDF automáticamente."""
         paciente_nombre = combo_paciente.get()
         if not paciente_nombre:
             messagebox.showwarning("Advertencia", "Debes seleccionar un paciente.")
             return
         paciente_id = pacientes_dict[paciente_nombre]
         try:
-            guardar_receta(
-                paciente_id,
-                date_fecha.get(),
-                entry_diagnostico.get(),
-                txt_medicamentos.get("1.0", tk.END).strip(),
-                txt_instrucciones.get("1.0", tk.END).strip(),
-            )
+            fecha = date_fecha.get()
+            diagnostico = entry_diagnostico.get()
+            medicamentos = txt_medicamentos.get("1.0", tk.END).strip()
+            instrucciones = txt_instrucciones.get("1.0", tk.END).strip()
+
+            guardar_receta(paciente_id, fecha, diagnostico, medicamentos, instrucciones)
             limpiar_campos()
             cargar_recetas()
-            messagebox.showinfo(
-                "Receta guardada", "La receta fue registrada correctamente."
-            )
+
+            ruta = generar_receta_pdf(
+                paciente_nombre, fecha, diagnostico, medicamentos, instrucciones)
+            messagebox.showinfo("PDF generado", f"Receta exportada como PDF:\n{ruta}")
+
+            if platform.system() == "Windows":
+                os.startfile(ruta)
+            elif platform.system() == "Darwin":
+                subprocess.call(["open", ruta])
+            else:
+                subprocess.call(["xdg-open", ruta])
+
         except Exception as e:  # pylint: disable=broad-exception-caught
             messagebox.showerror("Error", f"No se pudo guardar la receta: {e}")
+
+    def exportar_pdf():
+        """Exporta la receta seleccionada a un archivo PDF."""
+        selected = tabla.focus()
+        if not selected:
+            messagebox.showwarning(
+    "Selecciona una receta",
+    "Debes seleccionar una receta de la tabla."
+)
+
+            return
+
+        receta = tabla.item(selected)["values"]
+        if not receta:
+            return
+
+        paciente_nombre = combo_paciente.get()
+        fecha, diagnostico, medicamentos, instrucciones = receta[1:5]
+
+        try:
+            ruta = generar_receta_pdf(
+                paciente_nombre, fecha, diagnostico, medicamentos, instrucciones)
+            messagebox.showinfo(
+               "PDF generado",
+                f"Receta exportada como PDF:\n{ruta}"
+    )
+
+            if platform.system() == "Windows":
+                os.startfile(ruta)
+            elif platform.system() == "Darwin":
+                subprocess.call(["open", ruta])
+            else:
+                subprocess.call(["xdg-open", ruta])
+
+        except Exception as e:  # pylint: disable=broad-exception-caught
+            messagebox.showerror(
+                "Error",
+                f"No se pudo generar el PDF:\n{e}"
+    )
+
 
     def limpiar_campos():
         """Limpia todos los campos del formulario."""
@@ -63,14 +111,13 @@ def ventana_recetas():
         txt_medicamentos.delete("1.0", tk.END)
         txt_instrucciones.delete("1.0", tk.END)
 
+    # VENTANA
     win = tk.Tk()
     win.title("VetSys - Recetas Médicas")
     win.geometry("900x600")
     win.configure(bg="#f4f6f9")
 
-    tk.Label(
-        win, text="Recetas Médicas", font=("Arial", 16, "bold"), bg="#f4f6f9"
-    ).pack(pady=10)
+    tk.Label(win, text="Recetas Médicas", font=("Arial", 16, "bold"), bg="#f4f6f9").pack(pady=10)
 
     form = tk.Frame(win, bg="#f4f6f9")
     form.pack(pady=10)
@@ -82,11 +129,7 @@ def ventana_recetas():
     tk.Label(form, text="Paciente", bg="#f4f6f9").grid(row=0, column=0)
 
     date_fecha = DateEntry(
-        form,
-        width=15,
-        background="darkblue",
-        foreground="white",
-        date_pattern="yyyy-mm-dd",
+        form, width=15, background="darkblue", foreground="white", date_pattern="yyyy-mm-dd"
     )
     date_fecha.grid(row=0, column=3)
     tk.Label(form, text="Fecha", bg="#f4f6f9").grid(row=0, column=2)
@@ -102,9 +145,13 @@ def ventana_recetas():
     tk.Label(form, text="Instrucciones", bg="#f4f6f9").grid(row=3, column=0, pady=5)
     txt_instrucciones = tk.Text(form, width=70, height=4)
     txt_instrucciones.grid(row=3, column=1, columnspan=3, padx=5)
-    tk.Button(form, text="Guardar Receta", width=20, command=guardar).grid(
-        row=4, columnspan=4, pady=10
-    )
+
+    tk.Button(
+        form, text="Guardar Receta", width=20, command=guardar).grid(row=4, columnspan=4, pady=10)
+    tk.Button(
+        form, text="Exportar Receta a PDF", width=20, command=exportar_pdf).grid(
+        row=5, columnspan=4, pady=5)
+
     tk.Button(
         win,
         text="Volver al Menú",
@@ -113,7 +160,6 @@ def ventana_recetas():
         command=lambda: [win.destroy(), volver_al_menu()],
     ).pack(pady=10)
 
-    # Tabla
     tabla = ttk.Treeview(
         win,
         columns=("ID", "Fecha", "Diagnóstico", "Medicamentos", "Instrucciones"),
