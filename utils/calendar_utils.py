@@ -1,6 +1,8 @@
 import os
 from datetime import datetime, timedelta
+
 from icalendar import Calendar, Event
+
 
 def generar_archivo_calendario(paciente, fecha, hora, motivo):
     cal = Calendar()
@@ -8,9 +10,10 @@ def generar_archivo_calendario(paciente, fecha, hora, motivo):
 
     # Convertimos fecha y hora en datetime con validación robusta
     try:
-        fecha_inicio = datetime.strptime(f"{fecha} {hora}", "%Y-%m-%d %H:%M")
+        fecha_hora = f"{fecha.strip()} {hora.strip()}"
+        fecha_inicio = datetime.strptime(fecha_hora, "%Y-%m-%d %H:%M")
     except ValueError as e:
-        raise ValueError(f"Formato de fecha u hora inválido: {e}")
+        raise ValueError(f"Formato de fecha u hora inválido: {e}") from e
 
     # Duración estimada de 30 minutos
     fecha_fin = fecha_inicio + timedelta(minutes=30)

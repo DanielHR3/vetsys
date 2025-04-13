@@ -3,15 +3,19 @@ import platform
 import subprocess
 import tkinter as tk
 from tkinter import messagebox, ttk
+
 from tkcalendar import DateEntry
 
-from models.historial import agregar_historial, obtener_historial_por_paciente, editar_historial, eliminar_historial
+from models.historial import (agregar_historial, editar_historial,
+                              eliminar_historial,
+                              obtener_historial_por_paciente)
 from models.paciente import obtener_pacientes
 from utils.pdf_utils import generar_historial_pdf
 
 
 def volver_al_menu():
     from views.dashboard import mostrar_menu
+
     mostrar_menu()
 
 
@@ -32,7 +36,9 @@ def ventana_historial():
     def guardar_o_actualizar():
         paciente_nombre = combo_paciente.get()
         if not paciente_nombre:
-            messagebox.showwarning("Selecciona un paciente", "Debes seleccionar un paciente.")
+            messagebox.showwarning(
+                "Selecciona un paciente", "Debes seleccionar un paciente."
+            )
             return
 
         paciente_id = pacientes_dict[paciente_nombre]
@@ -43,13 +49,27 @@ def ventana_historial():
         observaciones = entry_observaciones.get()
 
         if historial_editando["id"]:
-            editar_historial(historial_editando["id"], paciente_id, fecha, sintomas, diagnostico, tratamiento, observaciones)
-            messagebox.showinfo("Actualizado", "El registro fue actualizado correctamente.")
+            editar_historial(
+                historial_editando["id"],
+                paciente_id,
+                fecha,
+                sintomas,
+                diagnostico,
+                tratamiento,
+                observaciones,
+            )
+            messagebox.showinfo(
+                "Actualizado", "El registro fue actualizado correctamente."
+            )
             btn_guardar.config(text="Guardar Historial")
             historial_editando["id"] = None
         else:
-            agregar_historial(paciente_id, fecha, sintomas, diagnostico, tratamiento, observaciones)
-            messagebox.showinfo("Historial registrado", "El historial fue registrado correctamente.")
+            agregar_historial(
+                paciente_id, fecha, sintomas, diagnostico, tratamiento, observaciones
+            )
+            messagebox.showinfo(
+                "Historial registrado", "El historial fue registrado correctamente."
+            )
 
         limpiar_campos()
         cargar_historial()
@@ -77,7 +97,9 @@ def ventana_historial():
             messagebox.showwarning("Selecciona", "Debes seleccionar un registro.")
             return
         datos = tabla.item(seleccionado)["values"]
-        confirm = messagebox.askyesno("Eliminar", "¿Eliminar este registro del historial?")
+        confirm = messagebox.askyesno(
+            "Eliminar", "¿Eliminar este registro del historial?"
+        )
         if confirm:
             eliminar_historial(datos[0])
             cargar_historial()
@@ -101,12 +123,16 @@ def ventana_historial():
         paciente_id = pacientes_dict[paciente_nombre]
         registros = obtener_historial_por_paciente(paciente_id)
         if not registros:
-            messagebox.showinfo("Sin registros", "Este paciente no tiene historial médico.")
+            messagebox.showinfo(
+                "Sin registros", "Este paciente no tiene historial médico."
+            )
             return
 
         try:
             ruta = generar_historial_pdf(paciente_nombre, registros)
-            messagebox.showinfo("PDF generado", f"Historial exportado como PDF:\n{ruta}")
+            messagebox.showinfo(
+                "PDF generado", f"Historial exportado como PDF:\n{ruta}"
+            )
 
             if platform.system() == "Windows":
                 os.startfile(ruta)
@@ -123,7 +149,13 @@ def ventana_historial():
     win.geometry("980x600")
     win.configure(bg="#e8f0fe")
 
-    tk.Label(win, text="Historial Médico", font=("Segoe UI", 18, "bold"), bg="#e8f0fe", fg="#0d47a1").pack(pady=10)
+    tk.Label(
+        win,
+        text="Historial Médico",
+        font=("Segoe UI", 18, "bold"),
+        bg="#e8f0fe",
+        fg="#0d47a1",
+    ).pack(pady=10)
 
     form = tk.Frame(win, bg="#e8f0fe")
     form.pack(pady=10)
@@ -135,7 +167,13 @@ def ventana_historial():
     combo_paciente.grid(row=0, column=1, padx=10)
 
     tk.Label(form, text="Fecha", bg="#e8f0fe").grid(row=0, column=2)
-    date_fecha = DateEntry(form, width=15, background="darkblue", foreground="white", date_pattern="yyyy-mm-dd")
+    date_fecha = DateEntry(
+        form,
+        width=15,
+        background="darkblue",
+        foreground="white",
+        date_pattern="yyyy-mm-dd",
+    )
     date_fecha.grid(row=0, column=3, padx=10)
 
     campos = [
@@ -145,7 +183,9 @@ def ventana_historial():
         ("Observaciones", 2, 2, "entry_observaciones"),
     ]
     for texto, fila, col, _ in campos:
-        tk.Label(form, text=texto, bg="#e8f0fe").grid(row=fila, column=col, padx=5, pady=5)
+        tk.Label(form, text=texto, bg="#e8f0fe").grid(
+            row=fila, column=col, padx=5, pady=5
+        )
 
     entry_sintomas = tk.Entry(form, width=30)
     entry_diagnostico = tk.Entry(form, width=30)
@@ -160,21 +200,38 @@ def ventana_historial():
     btn_frame = tk.Frame(win, bg="#e8f0fe")
     btn_frame.pack(pady=10)
 
-    btn_guardar = tk.Button(btn_frame, text="Guardar Historial", width=20, command=guardar_o_actualizar)
+    btn_guardar = tk.Button(
+        btn_frame, text="Guardar Historial", width=20, command=guardar_o_actualizar
+    )
     btn_guardar.pack(side=tk.LEFT, padx=10)
 
-    tk.Button(btn_frame, text="Eliminar", width=20, command=eliminar).pack(side=tk.LEFT, padx=10)
-    tk.Button(btn_frame, text="Exportar Historial a PDF", width=25, command=exportar_historial).pack(side=tk.LEFT, padx=10)
+    tk.Button(btn_frame, text="Eliminar", width=20, command=eliminar).pack(
+        side=tk.LEFT, padx=10
+    )
+    tk.Button(
+        btn_frame, text="Exportar Historial a PDF", width=25, command=exportar_historial
+    ).pack(side=tk.LEFT, padx=10)
 
     tk.Button(
-        win, text="Volver al Menú", width=20, bg="#dfefff", command=lambda: [win.destroy(), volver_al_menu()]
+        win,
+        text="Volver al Menú",
+        width=20,
+        bg="#dfefff",
+        command=lambda: [win.destroy(), volver_al_menu()],
     ).pack(pady=10)
 
     tabla = ttk.Treeview(
         win,
-        columns=("ID", "Fecha", "Síntomas", "Diagnóstico", "Tratamiento", "Observaciones"),
+        columns=(
+            "ID",
+            "Fecha",
+            "Síntomas",
+            "Diagnóstico",
+            "Tratamiento",
+            "Observaciones",
+        ),
         show="headings",
-        height=10
+        height=10,
     )
     for col in tabla["columns"]:
         tabla.heading(col, text=col)

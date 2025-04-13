@@ -35,16 +35,24 @@ def obtener_recetas_por_paciente(paciente_id):
     recetas = cur.fetchall()
     con.close()
     return recetas
-def editar_receta(id_receta, paciente_id, fecha, diagnostico, medicamentos, instrucciones):
+
+
+def editar_receta(
+    id_receta, paciente_id, fecha, diagnostico, medicamentos, instrucciones
+):
     con = conectar()
     cur = con.cursor()
-    cur.execute("""
+    cur.execute(
+        """
         UPDATE recetas
         SET paciente_id = ?, fecha = ?, diagnostico = ?, medicamentos = ?, instrucciones = ?
         WHERE id = ?
-    """, (paciente_id, fecha, diagnostico, medicamentos, instrucciones, id_receta))
+    """,
+        (paciente_id, fecha, diagnostico, medicamentos, instrucciones, id_receta),
+    )
     con.commit()
     con.close()
+
 
 def eliminar_receta(id_receta):
     con = conectar()

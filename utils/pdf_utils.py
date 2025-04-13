@@ -1,7 +1,9 @@
 import os
+from datetime import datetime
+
 from reportlab.lib.pagesizes import letter
 from reportlab.pdfgen import canvas
-from datetime import datetime
+
 
 def generar_receta_pdf(paciente, fecha, diagnostico, medicamentos, instrucciones):
     carpeta_descargas = os.path.join(os.path.expanduser("~"), "Downloads")
@@ -26,6 +28,8 @@ def generar_receta_pdf(paciente, fecha, diagnostico, medicamentos, instrucciones
 
     c.save()
     return ruta
+
+
 def generar_historial_pdf(paciente, registros):
     carpeta_descargas = os.path.join(os.path.expanduser("~"), "Downloads")
     os.makedirs(carpeta_descargas, exist_ok=True)
@@ -57,4 +61,3 @@ def generar_historial_pdf(paciente, registros):
 
     c.save()
     return ruta
-

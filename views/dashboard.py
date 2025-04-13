@@ -1,11 +1,13 @@
 import tkinter as tk
-from views.pacientes_view import ventana_pacientes
+from tkinter import messagebox
+
+from utils.backup_utils import respaldar_base_datos
 from views.citas_view import ventana_citas
 from views.historial_view import ventana_historial
-from views.recetas_view import ventana_recetas
 from views.inventario_view import ventana_inventario
-from utils.backup_utils import respaldar_base_datos
-from tkinter import messagebox
+from views.pacientes_view import ventana_pacientes
+from views.recetas_view import ventana_recetas
+
 
 def mostrar_menu():
     root = tk.Tk()
@@ -13,8 +15,12 @@ def mostrar_menu():
     root.geometry("600x600")  # Aumentamos altura
     root.configure(bg="#f4f6f9")
 
-    tk.Label(root, text="VetSys", font=("Segoe UI", 24, "bold"), bg="#f4f6f9", fg="#0d47a1").pack(pady=20)
-    tk.Label(root, text="Sistema de gestión veterinaria", font=("Segoe UI", 12), bg="#f4f6f9").pack()
+    tk.Label(
+        root, text="VetSys", font=("Segoe UI", 24, "bold"), bg="#f4f6f9", fg="#0d47a1"
+    ).pack(pady=20)
+    tk.Label(
+        root, text="Sistema de gestión veterinaria", font=("Segoe UI", 12), bg="#f4f6f9"
+    ).pack()
 
     menu_frame = tk.Frame(root, bg="#f4f6f9")
     menu_frame.pack(pady=30)
@@ -36,7 +42,7 @@ def mostrar_menu():
             bg=color,
             fg="white",
             font=("Segoe UI", 12, "bold"),
-            command=lambda f=funcion: [root.destroy(), f()]
+            command=lambda f=funcion: [root.destroy(), f()],
         ).pack(pady=6)
 
     # Botones extra
@@ -50,7 +56,7 @@ def mostrar_menu():
         bg="#636e72",
         fg="white",
         font=("Segoe UI", 10),
-        command=respaldar_y_notificar
+        command=respaldar_y_notificar,
     ).pack(side=tk.LEFT, padx=10)
 
     tk.Button(
@@ -60,10 +66,11 @@ def mostrar_menu():
         bg="#d63031",
         fg="white",
         font=("Segoe UI", 10),
-        command=root.destroy
+        command=root.destroy,
     ).pack(side=tk.LEFT, padx=10)
 
     root.mainloop()
+
 
 def respaldar_y_notificar():
     ruta = respaldar_base_datos()

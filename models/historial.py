@@ -37,16 +37,32 @@ def obtener_historial_por_paciente(paciente_id):
     resultados = cur.fetchall()
     con.close()
     return resultados
-def editar_historial(id_historial, paciente_id, fecha, sintomas, diagnostico, tratamiento, observaciones):
+
+
+def editar_historial(
+    id_historial, paciente_id, fecha, sintomas, diagnostico, tratamiento, observaciones
+):
     con = conectar()
     cur = con.cursor()
-    cur.execute("""
+    cur.execute(
+        """
         UPDATE historial
         SET paciente_id = ?, fecha = ?, sintomas = ?, diagnostico = ?, tratamiento = ?, observaciones = ?
         WHERE id = ?
-    """, (paciente_id, fecha, sintomas, diagnostico, tratamiento, observaciones, id_historial))
+    """,
+        (
+            paciente_id,
+            fecha,
+            sintomas,
+            diagnostico,
+            tratamiento,
+            observaciones,
+            id_historial,
+        ),
+    )
     con.commit()
     con.close()
+
 
 def eliminar_historial(id_historial):
     con = conectar()

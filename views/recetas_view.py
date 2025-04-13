@@ -3,18 +3,19 @@ import platform
 import subprocess
 import tkinter as tk
 from tkinter import messagebox, ttk
+
 from tkcalendar import DateEntry
 
 from models.paciente import obtener_pacientes
-from models.receta import guardar_receta, obtener_recetas_por_paciente, editar_receta, eliminar_receta
+from models.receta import (editar_receta, eliminar_receta, guardar_receta,
+                           obtener_recetas_por_paciente)
 from utils.pdf_utils import generar_receta_pdf
 
 
 def volver_al_menu():
     from views.dashboard import mostrar_menu
+
     mostrar_menu()
-
-
 
 
 def ventana_recetas():
@@ -45,18 +46,29 @@ def ventana_recetas():
 
         try:
             if receta_editando["id"]:
-                editar_receta(receta_editando["id"], paciente_id, fecha, diagnostico, medicamentos, instrucciones)
+                editar_receta(
+                    receta_editando["id"],
+                    paciente_id,
+                    fecha,
+                    diagnostico,
+                    medicamentos,
+                    instrucciones,
+                )
                 messagebox.showinfo("Actualizado", "Receta actualizada correctamente.")
                 btn_guardar.config(text="Guardar Receta")
                 receta_editando["id"] = None
             else:
-                guardar_receta(paciente_id, fecha, diagnostico, medicamentos, instrucciones)
+                guardar_receta(
+                    paciente_id, fecha, diagnostico, medicamentos, instrucciones
+                )
                 messagebox.showinfo("Guardado", "Receta registrada correctamente.")
 
             limpiar_campos()
             cargar_recetas()
 
-            ruta = generar_receta_pdf(paciente_nombre, fecha, diagnostico, medicamentos, instrucciones)
+            ruta = generar_receta_pdf(
+                paciente_nombre, fecha, diagnostico, medicamentos, instrucciones
+            )
             messagebox.showinfo("PDF generado", f"Receta exportada:\n{ruta}")
             abrir_pdf(ruta)
 
@@ -81,7 +93,9 @@ def ventana_recetas():
     def eliminar():
         seleccionado = tabla.selection()
         if not seleccionado:
-            messagebox.showwarning("Selecciona una receta", "Debes seleccionar una receta.")
+            messagebox.showwarning(
+                "Selecciona una receta", "Debes seleccionar una receta."
+            )
             return
         datos = tabla.item(seleccionado)["values"]
         confirm = messagebox.askyesno("Eliminar", "¿Eliminar esta receta?")
@@ -94,7 +108,9 @@ def ventana_recetas():
     def exportar_pdf():
         seleccionado = tabla.focus()
         if not seleccionado:
-            messagebox.showwarning("Selecciona una receta", "Debes seleccionar una receta.")
+            messagebox.showwarning(
+                "Selecciona una receta", "Debes seleccionar una receta."
+            )
             return
         receta = tabla.item(seleccionado)["values"]
         if not receta:
@@ -103,7 +119,9 @@ def ventana_recetas():
         paciente_nombre = combo_paciente.get()
         fecha, diagnostico, medicamentos, instrucciones = receta[1:5]
         try:
-            ruta = generar_receta_pdf(paciente_nombre, fecha, diagnostico, medicamentos, instrucciones)
+            ruta = generar_receta_pdf(
+                paciente_nombre, fecha, diagnostico, medicamentos, instrucciones
+            )
             messagebox.showinfo("PDF generado", f"Receta exportada:\n{ruta}")
             abrir_pdf(ruta)
         except Exception as e:
@@ -130,7 +148,13 @@ def ventana_recetas():
     win.geometry("980x600")
     win.configure(bg="#e8f0fe")
 
-    tk.Label(win, text="Recetas Médicas", font=("Segoe UI", 18, "bold"), bg="#e8f0fe", fg="#0d47a1").pack(pady=10)
+    tk.Label(
+        win,
+        text="Recetas Médicas",
+        font=("Segoe UI", 18, "bold"),
+        bg="#e8f0fe",
+        fg="#0d47a1",
+    ).pack(pady=10)
 
     form = tk.Frame(win, bg="#e8f0fe")
     form.pack(pady=10)
@@ -143,7 +167,13 @@ def ventana_recetas():
     combo_paciente.grid(row=0, column=1, padx=10, pady=5)
 
     tk.Label(form, text="Fecha", bg="#e8f0fe").grid(row=0, column=2)
-    date_fecha = DateEntry(form, width=15, background="darkblue", foreground="white", date_pattern="yyyy-mm-dd")
+    date_fecha = DateEntry(
+        form,
+        width=15,
+        background="darkblue",
+        foreground="white",
+        date_pattern="yyyy-mm-dd",
+    )
     date_fecha.grid(row=0, column=3)
 
     tk.Label(form, text="Diagnóstico", bg="#e8f0fe").grid(row=1, column=0, pady=5)
@@ -162,20 +192,31 @@ def ventana_recetas():
     btn_frame = tk.Frame(win, bg="#e8f0fe")
     btn_frame.pack(pady=10)
 
-    btn_guardar = tk.Button(btn_frame, text="Guardar Receta", width=20, command=guardar_o_actualizar)
+    btn_guardar = tk.Button(
+        btn_frame, text="Guardar Receta", width=20, command=guardar_o_actualizar
+    )
     btn_guardar.pack(side=tk.LEFT, padx=10)
 
-    tk.Button(btn_frame, text="Eliminar", width=20, command=eliminar).pack(side=tk.LEFT, padx=10)
-    tk.Button(btn_frame, text="Exportar a PDF", width=20, command=exportar_pdf).pack(side=tk.LEFT, padx=10)
+    tk.Button(btn_frame, text="Eliminar", width=20, command=eliminar).pack(
+        side=tk.LEFT, padx=10
+    )
+    tk.Button(btn_frame, text="Exportar a PDF", width=20, command=exportar_pdf).pack(
+        side=tk.LEFT, padx=10
+    )
 
-    tk.Button(win, text="Volver al Menú", width=20, bg="#dfefff", command=lambda: [win.destroy(), volver_al_menu()]).pack(pady=10)
-
+    tk.Button(
+        win,
+        text="Volver al Menú",
+        width=20,
+        bg="#dfefff",
+        command=lambda: [win.destroy(), volver_al_menu()],
+    ).pack(pady=10)
 
     tabla = ttk.Treeview(
         win,
         columns=("ID", "Fecha", "Diagnóstico", "Medicamentos", "Instrucciones"),
         show="headings",
-        height=10
+        height=10,
     )
     for col in tabla["columns"]:
         tabla.heading(col, text=col)
