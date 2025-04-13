@@ -29,3 +29,21 @@ def obtener_citas():
     citas = cur.fetchall()
     con.close()
     return citas
+
+def editar_cita(id_cita, paciente_id, fecha, hora, motivo):
+    con = conectar()
+    cur = con.cursor()
+    cur.execute("""
+        UPDATE citas
+        SET paciente_id = ?, fecha = ?, hora = ?, motivo = ?
+        WHERE id = ?
+    """, (paciente_id, fecha, hora, motivo, id_cita))
+    con.commit()
+    con.close()
+
+def eliminar_cita(id_cita):
+    con = conectar()
+    cur = con.cursor()
+    cur.execute("DELETE FROM citas WHERE id = ?", (id_cita,))
+    con.commit()
+    con.close()

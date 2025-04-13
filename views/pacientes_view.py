@@ -1,136 +1,165 @@
 import tkinter as tk
-from tkinter import messagebox, ttk
+from tkinter import ttk, messagebox
+import sys
+import os
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
-from tkcalendar import DateEntry
-
-from models.paciente import agregar_paciente, obtener_pacientes
-
-
+from models.paciente import agregar_paciente, obtener_pacientes, editar_paciente, eliminar_paciente
 def volver_al_menu():
     from views.dashboard import mostrar_menu
-
     mostrar_menu()
 
 
+
 def ventana_pacientes():
-    def agregar():
-        agregar_paciente(
-            entry_nombre.get(),
-            entry_especie.get(),
-            entry_raza.get(),
-            entry_sexo.get(),
-            entry_nacimiento.get(),
-            entry_propietario.get(),
-            entry_contacto.get(),
+    def cargar_pacientes():
+        tabla.delete(*tabla.get_children())
+        for p in obtener_pacientes():
+            tabla.insert("", "end", values=p)
+
+    def guardar():
+        datos = obtener_datos_formulario()
+        if not validar_datos(datos):
+            return
+        agregar_paciente(*datos)
+        limpiar()
+        cargar_pacientes()
+        messagebox.showinfo("Guardado", "Paciente agregado correctamente.")
+
+    def editar():
+        seleccionado = tabla.selection()
+        if not seleccionado:
+            messagebox.showwarning("Editar paciente", "Debes seleccionar un paciente.")
+            return
+        paciente = tabla.item(seleccionado)["values"]
+        id_paciente = paciente[0]
+        datos = obtener_datos_formulario()
+        if not validar_datos(datos):
+            return
+        confirm = messagebox.askyesno("Confirmar edición", f"¿Actualizar datos del paciente '{datos[0]}'?")
+        if confirm:
+            editar_paciente(id_paciente, *datos)
+            cargar_pacientes()
+            limpiar()
+            messagebox.showinfo("Editado", f"Paciente '{datos[0]}' actualizado correctamente.")
+
+    def eliminar():
+        seleccionado = tabla.selection()
+        if not seleccionado:
+            messagebox.showwarning("Eliminar paciente", "Debes seleccionar un paciente.")
+            return
+        paciente = tabla.item(seleccionado)["values"]
+        confirm = messagebox.askyesno("Confirmar", f"¿Eliminar a {paciente[1]}?")
+        if confirm:
+            eliminar_paciente(paciente[0])
+            cargar_pacientes()
+            limpiar()
+            messagebox.showinfo("Eliminado", "Paciente eliminado correctamente.")
+
+    def llenar_formulario(event):
+        seleccionado = tabla.selection()
+        if seleccionado:
+            datos = tabla.item(seleccionado)["values"]
+            entry_nombre.delete(0, tk.END)
+            entry_nombre.insert(0, datos[1])
+            entry_especie.delete(0, tk.END)
+            entry_especie.insert(0, datos[2])
+            entry_raza.delete(0, tk.END)
+            entry_raza.insert(0, datos[3])
+            entry_sexo.delete(0, tk.END)
+            entry_sexo.insert(0, datos[4])
+            entry_nacimiento.delete(0, tk.END)
+            entry_nacimiento.insert(0, datos[5])
+            entry_propietario.delete(0, tk.END)
+            entry_propietario.insert(0, datos[6])
+            entry_contacto.delete(0, tk.END)
+            entry_contacto.insert(0, datos[7])
+
+    def limpiar():
+        for e in entradas:
+            e.delete(0, tk.END)
+
+    def obtener_datos_formulario():
+        return (
+            entry_nombre.get().strip(),
+            entry_especie.get().strip(),
+            entry_raza.get().strip(),
+            entry_sexo.get().strip(),
+            entry_nacimiento.get().strip(),
+            entry_propietario.get().strip(),
+            entry_contacto.get().strip(),
         )
-        actualizar_tabla()
-        limpiar_campos()
-        messagebox.showinfo(
-            "Paciente agregado", "El paciente fue registrado correctamente."
-        )
 
-    def actualizar_tabla():
-        for row in tree.get_children():
-            tree.delete(row)
-        for paciente in obtener_pacientes():
-            tree.insert("", "end", values=paciente)
+    def validar_datos(datos):
+        if not all(datos):
+            messagebox.showwarning("Campos incompletos", "Todos los campos son obligatorios.")
+            return False
+        return True
 
-    def limpiar_campos():
-        entry_nombre.delete(0, tk.END)
-        entry_especie.delete(0, tk.END)
-        entry_raza.delete(0, tk.END)
-        entry_sexo.delete(0, tk.END)
-        entry_nacimiento.set_date("")
-        entry_propietario.delete(0, tk.END)
-        entry_contacto.delete(0, tk.END)
-
+    # Ventana
     win = tk.Tk()
     win.title("VetSys - Pacientes")
-    win.geometry("900x550")
-    win.configure(bg="#f4f6f9")
+    win.geometry("1100x650")
+    win.configure(bg="#e8f0fe")
 
-    tk.Label(
-        win, text="Gestión de Pacientes", font=("Arial", 16, "bold"), bg="#f4f6f9"
-    ).pack(pady=10)
+    # Estilo general
+    style = ttk.Style()
+    style.configure("Treeview", font=("Segoe UI", 10))
+    style.configure("Treeview.Heading", font=("Segoe UI", 10, "bold"))
+    style.map("TButton", background=[('active', '#1976d2')])
 
-    frame = tk.Frame(win, bg="#f4f6f9")
-    frame.pack(pady=10)
+    # Encabezado
+    tk.Label(win, text="Gestión de Pacientes", font=("Segoe UI", 18, "bold"), bg="#e8f0fe", fg="#0d47a1").pack(pady=10)
 
-    # Labels
-    labels = [
-        ("Nombre", 0, 0),
-        ("Especie", 0, 2),
-        ("Raza", 1, 0),
-        ("Sexo", 1, 2),
-        ("Nacimiento", 2, 0),
-        ("Propietario", 2, 2),
-        ("Contacto", 3, 0),
-    ]
+    # Formulario
+    form = tk.Frame(win, bg="#e8f0fe")
+    form.pack(pady=10)
 
-    for text, row, col in labels:
-        tk.Label(frame, text=text, bg="#f4f6f9").grid(
-            row=row, column=col, padx=5, pady=5
+    labels = ["Nombre", "Especie", "Raza", "Sexo", "Nacimiento", "Propietario", "Contacto"]
+    entradas = []
+    for idx, label in enumerate(labels):
+        tk.Label(form, text=label, bg="#e8f0fe", fg="#1a237e", font=("Segoe UI", 10)).grid(
+            row=idx // 2, column=(idx % 2) * 2, padx=10, pady=8, sticky="e"
         )
+        entry = tk.Entry(form, width=30, font=("Segoe UI", 10))
+        entry.grid(row=idx // 2, column=(idx % 2) * 2 + 1, padx=10)
+        entradas.append(entry)
 
-    # Entradas
-    entry_nombre = tk.Entry(frame, width=30)
-    entry_especie = tk.Entry(frame, width=30)
-    entry_raza = tk.Entry(frame, width=30)
-    entry_sexo = tk.Entry(frame, width=30)
-    entry_nacimiento = DateEntry(
-        frame,
-        width=27,
-        background="darkblue",
-        foreground="white",
-        date_pattern="yyyy-mm-dd",
-    )
-    entry_propietario = tk.Entry(frame, width=30)
-    entry_contacto = tk.Entry(frame, width=30)
-
-    widgets = [
-        (entry_nombre, 0, 1),
-        (entry_especie, 0, 3),
-        (entry_raza, 1, 1),
-        (entry_sexo, 1, 3),
-        (entry_nacimiento, 2, 1),
-        (entry_propietario, 2, 3),
-        (entry_contacto, 3, 1),
-    ]
-
-    for widget, row, col in widgets:
-        widget.grid(row=row, column=col, padx=5, pady=5)
+    (
+        entry_nombre,
+        entry_especie,
+        entry_raza,
+        entry_sexo,
+        entry_nacimiento,
+        entry_propietario,
+        entry_contacto,
+    ) = entradas
 
     # Botones
-    tk.Button(frame, text="Agregar Paciente", command=agregar, width=20).grid(
-        row=4, columnspan=4, pady=10
-    )
-    tk.Button(
-        win,
-        text="Volver al Menú",
-        width=20,
-        bg="#dfefff",
-        command=lambda: [win.destroy(), volver_al_menu()],
-    ).pack(pady=10)
+    btn_frame = tk.Frame(win, bg="#e8f0fe")
+    btn_frame.pack(pady=15)
+
+    ttk.Button(btn_frame, text="Agregar Paciente", command=guardar).pack(side=tk.LEFT, padx=10)
+    ttk.Button(btn_frame, text="Editar Paciente", command=editar).pack(side=tk.LEFT, padx=10)
+    ttk.Button(btn_frame, text="Eliminar Paciente", command=eliminar).pack(side=tk.LEFT, padx=10)
+    ttk.Button(btn_frame, text="Volver al Menú", command=lambda: [win.destroy(), volver_al_menu()]
+).pack(side=tk.LEFT, padx=10)
+
+    # Separador visual
+    ttk.Separator(win, orient='horizontal').pack(fill='x', pady=10)
 
     # Tabla
-    tree = ttk.Treeview(
+    tabla = ttk.Treeview(
         win,
-        columns=(
-            "ID",
-            "Nombre",
-            "Especie",
-            "Raza",
-            "Sexo",
-            "Nacimiento",
-            "Propietario",
-            "Contacto",
-        ),
+        columns=("ID", "Nombre", "Especie", "Raza", "Sexo", "Nacimiento", "Propietario", "Contacto"),
         show="headings",
+        height=12
     )
-    for col in tree["columns"]:
-        tree.heading(col, text=col)
-        tree.column(col, width=110)
-    tree.pack(expand=True, fill=tk.BOTH, padx=20, pady=10)
+    for col in tabla["columns"]:
+        tabla.heading(col, text=col)
+        tabla.column(col, width=130 if col == "ID" else 140)
+    tabla.pack(expand=True, fill=tk.BOTH, padx=20, pady=10)
+    tabla.bind("<<TreeviewSelect>>", llenar_formulario)
 
-    actualizar_tabla()
+    cargar_pacientes()
     win.mainloop()

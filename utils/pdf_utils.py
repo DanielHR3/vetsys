@@ -1,53 +1,60 @@
-"""Módulo para generar recetas médicas en formato PDF en VetSys."""
-
 import os
-
 from reportlab.lib.pagesizes import letter
 from reportlab.pdfgen import canvas
+from datetime import datetime
 
+def generar_receta_pdf(paciente, fecha, diagnostico, medicamentos, instrucciones):
+    carpeta_descargas = os.path.join(os.path.expanduser("~"), "Downloads")
+    os.makedirs(carpeta_descargas, exist_ok=True)
 
-def generar_receta_pdf(
-    paciente_nombre, fecha, diagnostico, medicamentos, instrucciones
-):
-    """Genera un PDF con los datos de la receta médica y espacio para firma manual."""
+    nombre_archivo = f"receta_{paciente.replace(' ', '_')}_{fecha}.pdf"
+    ruta = os.path.join(carpeta_descargas, nombre_archivo)
 
-    # Crea carpeta si no existe
-    os.makedirs("recetas_pdf", exist_ok=True)
-
-    # Nombre del archivo con fecha
-    filename = f"recetas_pdf/receta_{paciente_nombre.replace(' ', '_')}_{fecha}.pdf"
-
-    c = canvas.Canvas(filename, pagesize=letter)
-    _, height = letter
-
-    # Encabezado
-    c.setFont("Helvetica-Bold", 16)
-    c.drawString(200, height - 50, "Receta Médica")
-
-    # Datos del paciente
+    c = canvas.Canvas(ruta, pagesize=letter)
     c.setFont("Helvetica", 12)
-    c.drawString(50, height - 100, f"Paciente: {paciente_nombre}")
-    c.drawString(50, height - 120, f"Fecha: {fecha}")
-    c.drawString(50, height - 140, "Diagnóstico:")
-    text_diag = c.beginText(50, height - 160)
-    text_diag.textLines(diagnostico)
-    c.drawText(text_diag)
 
-    # Medicamentos
-    c.drawString(50, height - 220, "Medicamentos:")
-    text_med = c.beginText(50, height - 240)
-    text_med.textLines(medicamentos)
-    c.drawText(text_med)
-
-    # Instrucciones
-    c.drawString(50, height - 320, "Instrucciones:")
-    text_inst = c.beginText(50, height - 340)
-    text_inst.textLines(instrucciones)
-    c.drawText(text_inst)
-
-    # Firma manual
-    c.drawString(50, 100, "____________________________")
+    c.drawString(50, 750, f"Clínica Veterinaria - Receta Médica")
+    c.drawString(50, 730, f"Paciente: {paciente}")
+    c.drawString(50, 710, f"Fecha: {fecha}")
+    c.drawString(50, 690, f"Diagnóstico: {diagnostico}")
+    c.drawString(50, 670, "Medicamentos:")
+    c.drawString(70, 650, medicamentos)
+    c.drawString(50, 630, "Instrucciones:")
+    c.drawString(70, 610, instrucciones)
+    c.drawString(50, 100, "___________________________")
     c.drawString(50, 85, "Firma del médico")
 
     c.save()
-    return filename
+    return ruta
+def generar_historial_pdf(paciente, registros):
+    carpeta_descargas = os.path.join(os.path.expanduser("~"), "Downloads")
+    os.makedirs(carpeta_descargas, exist_ok=True)
+
+    nombre_archivo = f"historial_{paciente.replace(' ', '_')}.pdf"
+    ruta = os.path.join(carpeta_descargas, nombre_archivo)
+
+    c = canvas.Canvas(ruta, pagesize=letter)
+    c.setFont("Helvetica", 11)
+    y = 750
+
+    c.drawString(50, y, f"Historial Médico - {paciente}")
+    y -= 30
+
+    for r in registros:
+        fecha, sintomas, diagnostico, tratamiento, observaciones = r[1:6]
+        c.drawString(50, y, f"Fecha: {fecha}")
+        c.drawString(50, y - 15, f"Síntomas: {sintomas}")
+        c.drawString(50, y - 30, f"Diagnóstico: {diagnostico}")
+        c.drawString(50, y - 45, f"Tratamiento: {tratamiento}")
+        c.drawString(50, y - 60, f"Observaciones: {observaciones}")
+        y -= 90
+        if y < 100:
+            c.showPage()
+            y = 750
+
+    c.drawString(50, 80, "___________________________")
+    c.drawString(50, 65, "Firma del médico")
+
+    c.save()
+    return ruta
+
